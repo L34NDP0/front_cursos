@@ -13,7 +13,7 @@
                     </option>
                 </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 text-end">
                 <button @click="showAddModal = true" class="btn btn-primary">
                     Nova Matrícula
                 </button>

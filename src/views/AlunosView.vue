@@ -6,7 +6,7 @@
                 <h2>Alunos</h2>
             </div>
             <div class="col-md-4">
-                <input type="text" v-model="termoPesquisa" class="form-control" placeholder="Pesquisar alunos...">
+
             </div>
             <div class="col-md-4 text-end">
                 <button @click="showAddModal = true" class="btn btn-primary">
@@ -81,6 +81,11 @@
                         </li>
                     </ul>
                 </nav>
+                <!-- Barra de pesquisa centralizada abaixo da paginação -->
+                <div class="d-flex justify-content-center mt-4">
+                    <input type="text" v-model="termoPesquisa" class="form-control w-50"
+                        placeholder="Pesquisar Alunos...">
+                </div>
             </div>
         </div>
 
