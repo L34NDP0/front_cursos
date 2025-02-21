@@ -1,22 +1,18 @@
 const { defineConfig } = require("@vue/cli-service");
+
 module.exports = defineConfig({
   transpileDependencies: true,
-});
 
-module.exports = {
   devServer: {
+    port: process.env.PORT || 8080,
     disableHostCheck: true,
   },
-};
 
-module.exports = {
   css: {
     loaderOptions: {
       sass: {
-        additionalData: `
-          @import "@/assets/styles/variables.scss";
-        `
+        additionalData: `@import "@/assets/styles/variables.scss";`
       }
     }
   }
-} 
+});
