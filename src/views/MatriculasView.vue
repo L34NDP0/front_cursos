@@ -2,18 +2,10 @@
     <div class="container mx-auto p-4">
         <!-- Cabeçalho e Filtros -->
         <div class="row mb-4">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <h2>Matrículas</h2>
             </div>
-            <div class="col-md-4">
-                <select v-model="cursoSelecionado" class="form-select" @change="buscarMatriculas">
-                    <option value="">Selecione um Curso</option>
-                    <option v-for="curso in cursos" :key="curso.id" :value="curso.id">
-                        {{ curso.name }}
-                    </option>
-                </select>
-            </div>
-            <div class="col-md-4 text-end">
+            <div class="col-md-6 text-end">
                 <button @click="showAddModal = true" class="btn btn-primary">
                     Nova Matrícula
                 </button>
@@ -77,6 +69,11 @@
                             </a>
                         </li>
                     </ul>
+                    <!-- Barra de pesquisa centralizada abaixo da paginação -->
+                    <div class="d-flex justify-content-center mt-4">
+                        <input type="text" v-model="termoPesquisa" class="form-control w-50"
+                            placeholder="Pesquisar matrículas por aluno ou curso...">
+                    </div>
                 </nav>
             </div>
         </div>
@@ -165,7 +162,6 @@ export default {
             matriculas: [],
             cursos: [],
             alunos: [],
-            cursoSelecionado: '',
             showAddModal: false,
             showDeleteModal: false,
             matriculaEmEdicao: null,
@@ -175,17 +171,31 @@ export default {
                 aluno_id: ''
             },
             paginaAtual: 1,
-            itensPorPagina: 10
+            itensPorPagina: 10,
+            termoPesquisa: ''
         };
     },
     computed: {
+        matriculasFiltradas() {
+            if (!this.termoPesquisa) {
+                return this.matriculas;
+            }
+
+            const termo = this.termoPesquisa.toLowerCase();
+            return this.matriculas.filter(matricula =>
+                matricula.aluno_nome.toLowerCase().includes(termo) ||
+                matricula.curso_nome.toLowerCase().includes(termo)
+            );
+        },
+
         matriculasPaginadas() {
             const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
             const fim = inicio + this.itensPorPagina;
-            return this.matriculas.slice(inicio, fim);
+            return this.matriculasFiltradas.slice(inicio, fim);
         },
+
         totalPaginas() {
-            return Math.ceil(this.matriculas.length / this.itensPorPagina);
+            return Math.ceil(this.matriculasFiltradas.length / this.itensPorPagina);
         }
     },
     methods: {
@@ -253,10 +263,10 @@ export default {
                     },
                     body: JSON.stringify(this.novaMatricula)
                 });
-
+                // atualiza matriculas e fecha o modal
                 if (response.ok) {
-                    await this.buscarMatriculas(); // Atualiza a lista de matrículas
-                    this.fecharModal(); // Fecha o modal
+                    await this.buscarMatriculas();
+                    this.fecharModal();
                 } else {
                     const erro = await response.json();
                     throw new Error(erro.message || 'Erro ao salvar matrícula');
@@ -314,11 +324,10 @@ export default {
         this.buscarDados();
     },
     watch: {
-        cursoSelecionado() {
+        termoPesquisa() {
             this.paginaAtual = 1;
-            this.buscarMatriculas();
-        }
-    }
+        },
+    },
 };
 </script>
 
