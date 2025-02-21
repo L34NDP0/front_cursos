@@ -37,7 +37,9 @@ export default {
     methods: {
         formatarData(data) {
             if (!data) return '';
-            return new Date(data).toLocaleDateString('pt-BR');
+            // Garantir que a data seja convertida corretamente, considerando fuso horário
+            const date = new Date(data + 'T00:00:00Z'); // Adicionando hora para garantir o formato completo
+            return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
         },
         verDetalhes() {
             this.$router.push(`/curso/${this.curso.id}`);
@@ -53,7 +55,6 @@ export default {
 
 .card {
     min-height: 180px;
-
 }
 
 .card:hover {

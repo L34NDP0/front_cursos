@@ -31,7 +31,6 @@
                                 <th scope="col">Aluno</th>
                                 <th scope="col">Curso</th>
                                 <th scope="col">Data Matrícula</th>
-                                <th scope="col">Status</th>
                                 <th scope="col">Ações</th>
                             </tr>
                         </thead>
@@ -42,15 +41,7 @@
                                 <td>{{ matricula.curso_nome }}</td>
                                 <td>{{ formatarData(matricula.data_matricula) }}</td>
                                 <td>
-                                    <span :class="getStatusClass(matricula.status)">
-                                        {{ matricula.status }}
-                                    </span>
-                                </td>
-                                <td>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-warning me-2" @click="editarMatricula(matricula)">
-                                            Editar
-                                        </button>
                                         <button class="btn btn-sm btn-danger" @click="confirmarDelecao(matricula)">
                                             Cancelar
                                         </button>
@@ -58,7 +49,7 @@
                                 </td>
                             </tr>
                             <tr v-if="matriculasPaginadas.length === 0">
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="5" class="text-center py-4">
                                     Nenhuma matrícula encontrada
                                 </td>
                             </tr>
@@ -118,14 +109,6 @@
                                     <option v-for="aluno in alunos" :key="aluno.id" :value="aluno.id">
                                         {{ aluno.name }}
                                     </option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Status</label>
-                                <select v-model="novaMatricula.status" class="form-select" required>
-                                    <option value="Ativo">Ativo</option>
-                                    <option value="Pendente">Pendente</option>
-                                    <option value="Cancelado">Cancelado</option>
                                 </select>
                             </div>
                         </div>
@@ -189,12 +172,11 @@ export default {
             matriculaParaDeletar: null,
             novaMatricula: {
                 curso_id: '',
-                aluno_id: '',
-                status: 'Ativo'
+                aluno_id: ''
             },
             paginaAtual: 1,
             itensPorPagina: 10
-        }
+        };
     },
     computed: {
         matriculasPaginadas() {
@@ -210,11 +192,11 @@ export default {
         async buscarDados() {
             try {
                 // Buscar cursos
-                const respCursos = await fetch('http://localhost:5000/cursos');
+                const respCursos = await fetch(`${process.env.VUE_APP_API_URL}/cursos`);
                 this.cursos = await respCursos.json();
 
                 // Buscar alunos
-                const respAlunos = await fetch('http://localhost:5000/alunos');
+                const respAlunos = await fetch(`${process.env.VUE_APP_API_URL}/alunos`);
                 this.alunos = await respAlunos.json();
 
                 // Buscar matrículas iniciais
@@ -227,7 +209,7 @@ export default {
 
         async buscarMatriculas() {
             try {
-                let url = 'http://localhost:5000/matriculas';
+                let url = `${process.env.VUE_APP_API_URL}/matriculas`;
                 if (this.cursoSelecionado) {
                     url += `?curso_id=${this.cursoSelecionado}`;
                 }
@@ -251,22 +233,18 @@ export default {
             return new Date(data).toLocaleDateString('pt-BR');
         },
 
-        getStatusClass(status) {
-            const classes = {
-                'Ativo': 'badge bg-success',
-                'Pendente': 'badge bg-warning',
-                'Cancelado': 'badge bg-danger'
-            };
-            return classes[status] || 'badge bg-secondary';
-        },
-
         async salvarMatricula() {
             try {
                 const url = this.matriculaEmEdicao
-                    ? `http://localhost:5000/matriculas/${this.matriculaEmEdicao.id}`
-                    : 'http://localhost:5000/matriculas';
+                    ? `${process.env.VUE_APP_API_URL}/matriculas/${this.matriculaEmEdicao.id}`
+                    : `${process.env.VUE_APP_API_URL}/matriculas`;
 
                 const method = this.matriculaEmEdicao ? 'PUT' : 'POST';
+
+                // Certifique-se de que todos os dados necessários estejam em novaMatricula
+                if (!this.novaMatricula.curso_id || !this.novaMatricula.aluno_id) {
+                    throw new Error('Curso e Aluno são obrigatórios!');
+                }
 
                 const response = await fetch(url, {
                     method,
@@ -277,8 +255,8 @@ export default {
                 });
 
                 if (response.ok) {
-                    await this.buscarMatriculas();
-                    this.fecharModal();
+                    await this.buscarMatriculas(); // Atualiza a lista de matrículas
+                    this.fecharModal(); // Fecha o modal
                 } else {
                     const erro = await response.json();
                     throw new Error(erro.message || 'Erro ao salvar matrícula');
@@ -288,15 +266,13 @@ export default {
                 this.mostrarErro(erro.message);
             }
         },
-
         editarMatricula(matricula) {
             this.matriculaEmEdicao = matricula;
             this.novaMatricula = {
                 curso_id: matricula.curso_id,
-                aluno_id: matricula.aluno_id,
-                status: matricula.status
+                aluno_id: matricula.aluno_id
             };
-            this.showAddModal = true;
+            this.showAddModal = true; // Abre o modal para edição
         },
 
         confirmarDelecao(matricula) {
@@ -306,7 +282,7 @@ export default {
 
         async deletarMatricula() {
             try {
-                const response = await fetch(`http://localhost:5000/matriculas/${this.matriculaParaDeletar.id}`, {
+                const response = await fetch(`${process.env.VUE_APP_API_URL}/matriculas/${this.matriculaParaDeletar.id}`, {
                     method: 'DELETE'
                 });
 
@@ -328,8 +304,7 @@ export default {
             this.matriculaEmEdicao = null;
             this.novaMatricula = {
                 curso_id: '',
-                aluno_id: '',
-                status: 'Ativo'
+                aluno_id: ''
             };
         },
 
@@ -352,7 +327,7 @@ export default {
             this.buscarMatriculas();
         }
     }
-}
+};
 </script>
 
 <style scoped>

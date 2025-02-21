@@ -5,9 +5,7 @@
             <div class="col-md-4">
                 <h2>Alunos</h2>
             </div>
-            <div class="col-md-4">
-
-            </div>
+            <div class="col-md-4"></div>
             <div class="col-md-4 text-end">
                 <button @click="showAddModal = true" class="btn btn-primary">
                     Novo Aluno
@@ -26,7 +24,6 @@
                                 <th scope="col">Nome</th>
                                 <th scope="col">Email</th>
                                 <th scope="col">Data Cadastro</th>
-                                <th scope="col">Cursos Matriculados</th>
                                 <th scope="col">Ações</th>
                             </tr>
                         </thead>
@@ -36,12 +33,8 @@
                                 <td>{{ aluno.name }}</td>
                                 <td>{{ aluno.email }}</td>
                                 <td>{{ formatarData(aluno.data_criacao) }}</td>
-                                <td>{{ aluno.total_cursos || 0 }}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-info me-2" @click="verDetalhes(aluno.id)">
-                                            Ver
-                                        </button>
                                         <button class="btn btn-sm btn-warning me-2" @click="editarAluno(aluno)">
                                             Editar
                                         </button>
@@ -52,7 +45,7 @@
                                 </td>
                             </tr>
                             <tr v-if="alunosPaginados.length === 0">
-                                <td colspan="6" class="text-center py-4">
+                                <td colspan="5" class="text-center py-4">
                                     Nenhum aluno encontrado
                                 </td>
                             </tr>
@@ -194,7 +187,7 @@ export default {
     methods: {
         async buscarAlunos() {
             try {
-                const response = await fetch("http://localhost:5000/alunos");
+                const response = await fetch(`${process.env.VUE_APP_API_URL}/alunos`);
                 const data = await response.json();
                 this.alunos = data;
             } catch (erro) {
@@ -206,9 +199,8 @@ export default {
         async salvarAluno() {
             try {
                 const url = this.alunoEmEdicao
-                    ? `http://localhost:5000/alunos/${this.alunoEmEdicao.id}`
-                    : "http://localhost:5000/alunos";
-
+                    ? `${process.env.VUE_APP_API_URL}/alunos/${this.alunoEmEdicao.id}`
+                    : `${process.env.VUE_APP_API_URL}/alunos`;
                 const method = this.alunoEmEdicao ? 'PUT' : 'POST';
 
                 const response = await fetch(url, {
@@ -224,11 +216,15 @@ export default {
                     this.fecharModal();
                 } else {
                     const erro = await response.json();
-                    throw new Error(erro.message || 'Erro ao salvar aluno');
+                    if (erro.campo && erro.mensagem) {
+                        this.mostrarErro(erro.mensagem);
+                    } else {
+                        this.mostrarErro('Erro ao salvar aluno');
+                    }
                 }
             } catch (erro) {
                 console.error("Erro ao salvar aluno:", erro);
-                this.mostrarErro(erro.message);
+                this.mostrarErro('E-mail inválido');
             }
         },
 
@@ -245,7 +241,7 @@ export default {
 
         async deletarAluno() {
             try {
-                const response = await fetch(`http://localhost:5000/alunos/${this.alunoParaDeletar.id}`, {
+                const response = await fetch(`${process.env.VUE_APP_API_URL}/alunos/${this.alunoParaDeletar.id}`, {
                     method: 'DELETE'
                 });
 
@@ -269,10 +265,6 @@ export default {
                 name: '',
                 email: ''
             };
-        },
-
-        verDetalhes(alunoId) {
-            this.$router.push(`/alunos/${alunoId}`);
         },
 
         mudarPagina(pagina) {

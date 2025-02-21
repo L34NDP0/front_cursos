@@ -1,8 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, formatarData } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AlunosView from '../views/AlunosView.vue'
 import DetalheAlunoView from '../views/DetalheAlunoView.vue'
 import MatriculasView from '../views/MatriculasView.vue'
+
 
 const routes = [
   {
@@ -17,7 +18,7 @@ const routes = [
   },
   {
     path: '/alunos/:id',
-    name: 'detalhe-aluno',
+    name: 'DetalheAluno',
     component: DetalheAlunoView
   },
   {
@@ -28,7 +29,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createWebHistory(),
   routes
 })
 

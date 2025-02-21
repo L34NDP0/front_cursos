@@ -2,13 +2,25 @@
   <div class="container mx-auto p-4">
     <!-- Cabeçalho e Filtros -->
     <div class="row mb-4">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <h2>Cursos</h2>
       </div>
-      <div class="col-md-4">
-
+      <div class="col-md-3">
+        <select v-model="categoriaSelecionada" class="form-select">
+          <option value="">Todas as Categorias</option>
+          <option v-for="categoria in categorias" :key="categoria" :value="categoria">
+            {{ categoria }}
+          </option>
+        </select>
       </div>
-      <div class="col-md-4 text-end">
+      <div class="col-md-3">
+        <select v-model="ordenacao" class="form-select">
+          <option value="">Ordenar por Duração</option>
+          <option value="asc">Menor Duração</option>
+          <option value="desc">Maior Duração</option>
+        </select>
+      </div>
+      <div class="col-md-3 text-end">
         <button @click="showAddModal = true" class="btn btn-primary">
           Novo Curso
         </button>
@@ -25,9 +37,9 @@
                 <th scope="col">#</th>
                 <th scope="col">Nome</th>
                 <th scope="col">Descrição</th>
+                <th scope="col">Categoria</th>
                 <th scope="col">Duração (h)</th>
                 <th scope="col">Data Criação</th>
-                <th scope="col">Alunos Matriculados</th>
                 <th scope="col">Ações</th>
               </tr>
             </thead>
@@ -36,9 +48,9 @@
                 <th scope="row">{{ curso.id }}</th>
                 <td>{{ curso.name }}</td>
                 <td>{{ curso.descricao }}</td>
+                <td>{{ curso.categoria }}</td>
                 <td>{{ curso.duracao }}h</td>
                 <td>{{ formatarData(curso.data_criacao) }}</td>
-                <td>{{ curso.total_alunos || 0 }}</td>
                 <td>
                   <div class="btn-group">
                     <button class="btn btn-sm btn-info me-2" @click="verDetalhes(curso.id)">
@@ -60,6 +72,54 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Modal de Detalhes -->
+        <div class="modal fade show" :class="{ 'd-block': showDetailModal }" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Detalhes do Curso</h5>
+                <button type="button" class="btn-close" @click="fecharModalDetalhes"></button>
+              </div>
+              <div class="modal-body" v-if="cursoSelecionado">
+                <div class="card">
+                  <div class="card-body">
+                    <h4 class="card-title mb-3">{{ cursoSelecionado.name }}</h4>
+
+                    <div class="mb-3">
+                      <h6 class="text-muted">Categoria</h6>
+                      <p>{{ cursoSelecionado.categoria }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                      <h6 class="text-muted">Descrição</h6>
+                      <p>{{ cursoSelecionado.descricao }}</p>
+                    </div>
+
+                    <div class="row mb-3">
+                      <div class="col-md-6">
+                        <h6 class="text-muted">Duração</h6>
+                        <p>{{ cursoSelecionado.duracao }} horas</p>
+                      </div>
+                      <div class="col-md-6">
+                        <h6 class="text-muted">Data de Criação</h6>
+                        <p>{{ formatarData(cursoSelecionado.data_criacao) }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="fecharModalDetalhes">
+                  Fechar
+                </button>
+                <button type="button" class="btn btn-primary" @click="editarCurso(cursoSelecionado)">
+                  Editar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Paginação -->
@@ -95,10 +155,7 @@
     <div class="modal fade show" :class="{ 'd-block': showAddModal }" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">{{ cursoEmEdicao ? 'Editar' : 'Novo' }} Curso</h5>
-            <button type="button" class="btn-close" @click="fecharModal"></button>
-          </div>
+          <!-- ... cabeçalho do modal ... -->
           <form @submit.prevent="salvarCurso">
             <div class="modal-body">
               <div class="mb-3">
@@ -108,6 +165,15 @@
               <div class="mb-3">
                 <label class="form-label">Descrição</label>
                 <textarea v-model="novoCurso.descricao" class="form-control" rows="3" required></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Categoria</label>
+                <select v-model="novoCurso.categoria" class="form-select" required>
+                  <option value="">Selecione uma categoria</option>
+                  <option v-for="categoria in categorias" :key="categoria" :value="categoria">
+                    {{ categoria }}
+                  </option>
+                </select>
               </div>
               <div class="mb-3">
                 <label class="form-label">Duração (horas)</label>
@@ -167,13 +233,19 @@ export default {
       cursos: [],
       showAddModal: false,
       showDeleteModal: false,
+      showDetailModal: false,
+      cursoSelecionado: null,
       cursoEmEdicao: null,
       cursoParaDeletar: null,
       novoCurso: {
         name: '',
         descricao: '',
-        duracao: ''
+        duracao: '',
+        categoria: ''
       },
+      categorias: ['Programação', 'Design', 'Marketing', 'Negócios', 'Data Science'],
+      categoriaSelecionada: '',
+      ordenacao: '',
       termoPesquisa: '',
       paginaAtual: 1,
       itensPorPagina: 10
@@ -181,27 +253,68 @@ export default {
   },
   computed: {
     cursosFiltrados() {
-      if (!this.termoPesquisa) return this.cursos;
+      let cursosFiltrados = [...this.cursos]; // Corrigido: use spread operator ao invés de array
 
-      const termo = this.termoPesquisa.toLowerCase();
-      return this.cursos.filter(curso =>
-        curso.name.toLowerCase().includes(termo) ||
-        curso.descricao.toLowerCase().includes(termo)
-      );
+      // Filtro por texto
+      if (this.termoPesquisa) {
+        const termo = this.termoPesquisa.toLowerCase();
+        cursosFiltrados = cursosFiltrados.filter(curso =>
+          curso.name.toLowerCase().includes(termo) ||
+          curso.descricao.toLowerCase().includes(termo)
+        );
+      }
+
+      // Filtro por categoria
+      if (this.categoriaSelecionada) {
+        cursosFiltrados = cursosFiltrados.filter(curso =>
+          curso.categoria === this.categoriaSelecionada
+        );
+      }
+
+      // Ordenação por duração
+      if (this.ordenacao) {
+        cursosFiltrados.sort((a, b) => {
+          if (this.ordenacao === 'asc') {
+            return a.duracao - b.duracao;
+          } else {
+            return b.duracao - a.duracao;
+          }
+        });
+      }
+
+      return cursosFiltrados;
     },
+
+    mostrarBackdrop() {
+      return this.showAddModal || this.showDeleteModal || this.showDetailModal;
+    },
+
     cursosPaginados() {
       const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
       const fim = inicio + this.itensPorPagina;
       return this.cursosFiltrados.slice(inicio, fim);
     },
+
     totalPaginas() {
       return Math.ceil(this.cursosFiltrados.length / this.itensPorPagina);
+    }
+  },
+
+  watch: {
+    termoPesquisa() {
+      this.paginaAtual = 1;
+    },
+    categoriaSelecionada() {
+      this.paginaAtual = 1;
+    },
+    ordenacao() {
+      this.paginaAtual = 1;
     }
   },
   methods: {
     async buscarCursos() {
       try {
-        const response = await fetch('http://localhost:5000/cursos');
+        const response = await fetch(`${process.env.VUE_APP_API_URL}/cursos`);
         this.cursos = await response.json();
       } catch (erro) {
         console.error('Erro ao buscar cursos:', erro);
@@ -217,8 +330,8 @@ export default {
     async salvarCurso() {
       try {
         const url = this.cursoEmEdicao
-          ? `http://localhost:5000/cursos/${this.cursoEmEdicao.id}`
-          : 'http://localhost:5000/cursos';
+          ? `${process.env.VUE_APP_API_URL}/cursos/${this.cursoEmEdicao.id}`
+          : `${process.env.VUE_APP_API_URL}/cursos`;
 
         const method = this.cursoEmEdicao ? 'PUT' : 'POST';
 
@@ -253,10 +366,28 @@ export default {
       this.cursoParaDeletar = curso;
       this.showDeleteModal = true;
     },
+    async verDetalhes(cursoId) {
+      try {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}/cursos/${cursoId}`);
+        if (response.ok) {
+          this.cursoSelecionado = await response.json();
+          this.showDetailModal = true;
+        } else {
+          throw new Error('Erro ao carregar detalhes do curso');
+        }
+      } catch (erro) {
+        console.error('Erro ao carregar detalhes:', erro);
+        this.mostrarErro('Erro ao carregar detalhes do curso');
+      }
+    },
+    fecharModalDetalhes() {
+      this.showDetailModal = false;
+      this.cursoSelecionado = null;
+    },
 
     async deletarCurso() {
       try {
-        const response = await fetch(`http://localhost:5000/cursos/${this.cursoParaDeletar.id}`, {
+        const response = await fetch(`${process.env.VUE_APP_API_URL}/cursos/${this.cursoParaDeletar.id}`, {
           method: 'DELETE'
         });
 
@@ -283,9 +414,6 @@ export default {
       };
     },
 
-    verDetalhes(cursoId) {
-      this.$router.push(`/curso/${cursoId}`);
-    },
 
     mudarPagina(pagina) {
       if (pagina >= 1 && pagina <= this.totalPaginas) {
@@ -334,5 +462,53 @@ export default {
 .btn-group .btn {
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
+}
+
+.modal .card {
+  border: none;
+  box-shadow: none;
+}
+
+.modal .card-title {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.modal h6.text-muted {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.modal p {
+  margin-bottom: 0;
+  font-size: 1rem;
+}
+
+.modal .row {
+  margin-top: 1rem;
+}
+
+.modal .card {
+  border: none;
+  box-shadow: none;
+}
+
+.modal .card-title {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.modal h6.text-muted {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.modal p {
+  margin-bottom: 0;
+  font-size: 1rem;
+}
+
+.modal .row {
+  margin-top: 1rem;
 }
 </style>
