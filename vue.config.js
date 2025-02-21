@@ -4,8 +4,8 @@ module.exports = defineConfig({
   transpileDependencies: true,
 
   devServer: {
-    port: process.env.PORT || 6000,
-    disableHostCheck: true,
+    port: process.env.PORT || 8080,
+    allowedHosts: "all",
   },
 
   css: {
