@@ -4,6 +4,12 @@ module.exports = defineConfig({
 });
 
 module.exports = {
+  devServer: {
+    disableHostCheck: true,
+  },
+};
+
+module.exports = {
   css: {
     loaderOptions: {
       sass: {
