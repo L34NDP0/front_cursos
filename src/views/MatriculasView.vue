@@ -241,7 +241,7 @@ export default {
 
                 const method = this.matriculaEmEdicao ? 'PUT' : 'POST';
 
-                // Certifique-se de que todos os dados necessários estejam em novaMatricula
+                // validação dados matricula
                 if (!this.novaMatricula.curso_id || !this.novaMatricula.aluno_id) {
                     throw new Error('Curso e Aluno são obrigatórios!');
                 }
@@ -265,14 +265,6 @@ export default {
                 console.error('Erro ao salvar matrícula:', erro);
                 this.mostrarErro(erro.message);
             }
-        },
-        editarMatricula(matricula) {
-            this.matriculaEmEdicao = matricula;
-            this.novaMatricula = {
-                curso_id: matricula.curso_id,
-                aluno_id: matricula.aluno_id
-            };
-            this.showAddModal = true; // Abre o modal para edição
         },
 
         confirmarDelecao(matricula) {

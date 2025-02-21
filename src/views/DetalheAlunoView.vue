@@ -21,12 +21,12 @@ export default {
     name: 'DetalheAluno',
     data() {
         return {
-            aluno: {} // Agora apenas o aluno será carregado
+            aluno: {}
         }
     },
     methods: {
         voltar() {
-            this.$router.push({ name: 'alunos' });  // Usando o nome da rota para navegar
+            this.$router.push({ name: 'alunos' });
         },
         formatarData(data) {
             if (!data) return '-'
@@ -41,8 +41,6 @@ export default {
                 }
                 this.aluno = await responseAluno.json()
 
-                // Não é mais necessário carregar cursos matriculados
-                // A requisição para os cursos foi removida
             } catch (erro) {
                 console.error('Erro ao carregar dados:', erro)
             }

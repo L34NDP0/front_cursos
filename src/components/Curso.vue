@@ -37,8 +37,8 @@ export default {
     methods: {
         formatarData(data) {
             if (!data) return '';
-            // Garantir que a data seja convertida corretamente, considerando fuso horário
-            const date = new Date(data + 'T00:00:00Z'); // Adicionando hora para garantir o formato completo
+            // data  convertida corretamente
+            const date = new Date(data + 'T00:00:00Z');
             return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
         },
         verDetalhes() {

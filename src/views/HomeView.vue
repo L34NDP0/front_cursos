@@ -193,7 +193,7 @@
       </div>
     </div>
 
-    <!-- Modal de Confirmação de Deleção -->
+    <!-- Modal de Confirmação de delete -->
     <div class="modal fade show" :class="{ 'd-block': showDeleteModal }" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -253,7 +253,7 @@ export default {
   },
   computed: {
     cursosFiltrados() {
-      let cursosFiltrados = [...this.cursos]; // Corrigido: use spread operator ao invés de array
+      let cursosFiltrados = [...this.cursos];
 
       // Filtro por texto
       if (this.termoPesquisa) {
@@ -326,7 +326,7 @@ export default {
       if (!data) return '-';
       return new Date(data).toLocaleDateString('pt-BR');
     },
-
+    // salvar cursos puxando a rota do .env
     async salvarCurso() {
       try {
         const url = this.cursoEmEdicao

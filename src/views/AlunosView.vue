@@ -74,7 +74,7 @@
                         </li>
                     </ul>
                 </nav>
-                <!-- Barra de pesquisa centralizada abaixo da paginação -->
+                <!-- Barra de pesquisa abaixo da paginação -->
                 <div class="d-flex justify-content-center mt-4">
                     <input type="text" v-model="termoPesquisa" class="form-control w-50"
                         placeholder="Pesquisar Alunos...">
@@ -114,7 +114,7 @@
             </div>
         </div>
 
-        <!-- Modal de Confirmação de Deleção -->
+        <!-- Modal de Confirmação de delete -->
         <div class="modal fade show" :class="{ 'd-block': showDeleteModal }" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
