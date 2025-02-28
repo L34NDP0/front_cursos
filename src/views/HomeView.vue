@@ -324,7 +324,19 @@ export default {
 
     formatarData(data) {
       if (!data) return '-';
-      return new Date(data).toLocaleDateString('pt-BR');
+
+      const [ano, mes, dia] = data.split('-');
+      const dataUTC = new Date(Date.UTC(ano, mes - 1, dia));
+
+      const locale = 'pt-BR';
+      const opcoes = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        timeZone: 'UTC'
+      };
+
+      return dataUTC.toLocaleDateString(locale, opcoes);
     },
     // salvar cursos puxando a rota do .env
     async salvarCurso() {

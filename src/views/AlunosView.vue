@@ -274,8 +274,10 @@ export default {
         },
 
         formatarData(data) {
-            if (!data) return '-';
-            return new Date(data).toLocaleDateString('pt-BR');
+            if (!data) return 'Data não disponível';
+
+            const locale = 'pt-BR';
+            return new Date(data + 'T00:00:00').toLocaleDateString(locale);
         },
 
         mostrarErro(mensagem) {
